@@ -1,0 +1,91 @@
+  ----PROYECTO SISTEMAS DIGITALES----
+	 ---integrantes: José Espinales, Jhony López-----
+	           ----Paralelo 101---
+Library ieee;
+Use ieee.std_logic_1164.all;
+
+Entity ProyectoSDII is
+	PORT( Clock, Resetn,START, Sensor, Tecla, clave_ok, error3, es1min, es30seg, es10min : in std_logic;
+		Error, Puerta, Alarma, Llamada,EnReg1, EnReg2, EnReg3, EnReg4, EnCerror, LdCerror, EnC1min, LdC1min, EnC30seg, LdC30seg, EnC10min, LdC10min, Resetn_error, Resetn_1min, Resetn_30seg, Resetn_10min, EnDec: out std_logic);
+END ProyectoSDII;
+
+Architecture resolucion of ProyectoSDII is
+Type estado is (Ta,Tb,Tc,Td,Te,Tf,Tg,Th,Ti,Tj, Tl, Tm);
+SIGNAL y:estado;
+BEGIN
+-----ESTADOS----
+	process(clock,Resetn)
+	BEGIN
+		if Resetn='0' then y<=Ta;
+  		elsif (clock'event and clock='1') then
+			case y is
+			
+				when Ta=> 	if START='1' then y<=Tb;
+								else y<=Ta;
+								end if;
+				when Tb=> 	if START='1' then y<=Tb;
+								else y<=Tc;
+								end if;
+				when Tc=> 	if tecla='1' then y<=Td;
+								else y<=Tc;
+								end if;
+				when Td=> 	if tecla='0' then y<=Te;
+								else y<=Td;
+								end if;
+				when Te=> 	if tecla='1' then y<=Tf;
+								else y<=Te;
+								end if;
+				when Tf=> 	if tecla='0' then y<=Tg;
+								else y<=Tf;
+								end if;
+				when Tg=> 	if clave_ok='1' then y<=Th;
+								else y<=Tl;
+								end if;
+				when Th=> 	if Sensor='1' then y<=Ti;
+								else y<=Tc;
+								end if;
+				when Ti=> 	if es30seg='1' then y<=Tj;
+								else y<=Th;
+								end if;
+				when Tj=> 	if es10min='1' then y<=Tj;
+								else y<=Th;
+								end if;
+				when Tl=> 	if error3='1' then y<=Tm;
+								else y<=Tc;
+								end if;
+				when Tm=> 	if es1min='1' then y<=Tm;
+								else y<=Tc;
+								end if;
+		  end case;
+		end if;
+	end process;
+	
+	----- SALIDAS-----
+	 process(y)
+	BEGIN
+		Error<='0'; Puerta<='0'; Alarma<='0'; Llamada<='0'; EnReg1<='0'; EnReg2<='0'; EnReg3<='0'; EnReg4<='0'; EnCerror<='0'; LdCerror<='0'; EnC1min<='0'; LdC1min<='0'; EnC30seg<='0'; LdC30seg<='0'; EnC10min<='0'; LdC10min<='0'; Resetn_error<='0'; Resetn_1min<='0'; Resetn_30seg<='0'; Resetn_10min<='0'; EnDec<='0';
+			case y is
+				when Ta=>
+				when Tb=> 
+				when Tc=> if tecla='1' then EnReg1<='1';
+								end if;
+				when Td=> if tecla='1' then EnReg2<='1';
+								end if;
+				when Te=> if tecla='1' then EnReg3<='1';
+								end if;
+				when Tf=> if tecla='1' then EnReg4<='1';
+								end if;
+				when Tg=> if clave_ok='1' then Puerta<='1';
+								end if;
+				when Th=> 
+				when Ti=> EnC30seg<='1'; LdC30seg<='1';EnDec<='1';
+				when Tj=> EnC10min<='1'; LdC10min<='1'; Alarma<='1'; Llamada<='1'; EnDec<='1';
+								if es10min='0' then Resetn_10min<='1'; Resetn_30seg<='1';
+									end if;
+				when Tl=> Error<='1'; EnCerror<='1'; LdCerror<='1';
+				when Tm=> EnC1min<='1'; LdC1min<='1'; Alarma<='1';
+								if es1min='0' then Resetn_1min<='1'; Resetn_error<='1';
+									end if;
+		  end case;
+   end process;
+end resolucion;
